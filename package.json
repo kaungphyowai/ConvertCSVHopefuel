@@ -3,15 +3,18 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Confirmed",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "author": "HopeFuel Geek Team",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.4.5",
+    "express": "^4.21.0",
     "json-2-csv": "^5.5.6",
+    "multer": "^1.4.5-lts.1",
     "mysql2": "^3.11.3"
   }
 }

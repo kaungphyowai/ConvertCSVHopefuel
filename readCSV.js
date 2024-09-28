@@ -1,18 +1,9 @@
-import mysql from "mysql2/promise";
-import { readFile } from "fs/promises";
-import { resolve, dirname } from "path";
-import { fileURLToPath } from "url";
+
 import { csv2json } from "json-2-csv";
-import db from "./database/db.js";
-
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const filePath = resolve(__dirname, "./uploads/Beta-Data-HopeFuel.csv");
+import { readFile } from "fs/promises";
 
 //Export JSON Object From CSV File
-async function readCSV(filePath) {
+export default async function readCSV(filePath) {
 
   const csvContent = await readFile(filePath, "utf-8");
 
@@ -28,6 +19,4 @@ async function readCSV(filePath) {
   return json;
 }
 
-readCSV(filePath).then((data) => {
-  console.log("CSV file converted to JSON:", data);
-});
+
