@@ -6,6 +6,8 @@ import path from "path";
 import readCSV from "./functions/readCSV.js";
 import  insertToSupportRegionDB  from "./functions/DBsupportRegion.js";
 import insertToCurrencyDB  from "./functions/DBCurreny.js";
+import insertToWalletDB  from "./functions/DBWallet.js";
+import insertToUserRoleDB  from "./functions/DBUserRole.js";
 import {getUniqueValues} from "./Helper/UniqueFile.js";
 
 
@@ -22,7 +24,7 @@ app.post("/upload-csv", upload.single("csvFile"), async (req, res) => {
 
   const data = await readCSV(filePath);
 
-  console.log("Data from CSV file", data);
+  //console.log("Data from CSV file", data);
 
   
   const uniqueSupportRegions = getUniqueValues(data, "Support Region");
@@ -35,13 +37,26 @@ app.post("/upload-csv", upload.single("csvFile"), async (req, res) => {
 
 
   const uniqueCurrency = getUniqueValues(data, "Currency");
-   uniqueCurrency.forEach(async (item) => {
-    const currencyID = await insertToCurrencyDB(item);
+   uniqueCurrency.forEach( (item) => {
+    const currencyID =  insertToCurrencyDB(item);
      console.log("Currency Data inserted into the database with Id: ", currencyID);
    });
 
 
   const uniqueWallet = getUniqueValues(data, "Wallet");
+
+  uniqueWallet.forEach( (item, index) => {
+    // NOTE: THIS IS A TEMP SOLUTION => TODO: FIX THIS AFTER DISCUSSION=
+    const walletID =  insertToWalletDB(item);
+     console.log("Wallet Data inserted into the database with Id: ", walletID);
+   });
+
+   const userRole = ["Support Agent", "Admin", "Payment Processor"]
+
+  userRole.forEach( (item) => {
+    const userRoleID =  insertToUserRoleDB(item);
+     console.log("UserRole Data inserted into the database with Id: ", userRoleID);
+   });
 
   const uniqueHopeFuelID = getUniqueValues(data, "Hope ID");
 
