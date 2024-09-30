@@ -55,6 +55,8 @@ app.post("/upload-csv", upload.single("csvFile"), async (req, res) => {
   console.log(uniqueWallet);
   //console.log(uniqueHopeFuelID);
   //console.log(HopeIdDate);
+
+  res.redirect("/");
 });
 
   
