@@ -2,8 +2,8 @@
 import db from "../database/db.js";
 
 // Function for inserting data into the database
-export default function insertToUserRoleDB(walletData) {
-  const result = db("INSERT INTO UserRole (UserRole) VALUES (?)", [
+export default async function insertToUserRoleDB(walletData) {
+  const result =await db("INSERT INTO UserRole (UserRole) VALUES (?)", [
     walletData,
   ]);
 

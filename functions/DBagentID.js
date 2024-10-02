@@ -6,9 +6,9 @@ import db from "../database/db.js";
   
 
   // Function for inserting data into the database  
-export default async function insertToSupportRegionDB(supportRegionData) {
+export default async function insertAgentId(agentId) {
     
-   const result = await db("INSERT INTO SupportRegion (Region) VALUES (?)", [supportRegionData]);
+   const result = await db("INSERT INTO Agent (AwsId, UserRoleId) VALUES (?, ?)", [agentId, 1]);
      
 
    return result.insertId;

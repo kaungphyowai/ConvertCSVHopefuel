@@ -8,10 +8,11 @@ export default async function customerIdExist(cardID) {
             [cardID]
         );
 
+
         // Check if a user was found
         if (rows.length > 0) {
             // Return the user row
-            return Response.json(rows[0])
+            return rows[0]
         } else {
             return Response.json("false"); // No user found
         }

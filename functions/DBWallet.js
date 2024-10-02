@@ -2,8 +2,8 @@
 import db from "../database/db.js";
 
 // Function for inserting data into the database
-export default function insertToWalletDB(walletData) {
-  const result = db("INSERT INTO Wallet (WalletName, CurrencyId) VALUES (?, ?)", [
+export default async function insertToWalletDB(walletData) {
+  const result = await db("INSERT INTO Wallet (WalletName, CurrencyId) VALUES (?, ?)", [
     walletData, 1
   ]);
 
