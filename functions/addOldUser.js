@@ -14,7 +14,6 @@ export default async function addOldUser(row) {
     // TODO: formfill person need to match before run in csv.
     try {
         const {
-            'Hope ID': hopefulId,
             'Date': transactionDate,
             'Name': name,
             'Email': email,
@@ -29,6 +28,9 @@ export default async function addOldUser(row) {
             'Customer ID': customerCardId, // This is related to CardID in the database
             "AgentID": awsId
         } = row;
+
+        const hopeKeys = Object.keys(row).filter(key => key.includes('Hope'));
+        const hopefulId = row[hopeKeys[0]]
 
         // 1. Get SupportRegionId and WalletId
 

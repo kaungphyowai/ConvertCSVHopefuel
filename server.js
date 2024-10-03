@@ -104,7 +104,7 @@ const upload = multer({ dest: "uploads/" });
 //       if(isValidatedOld)
 //       {
 //         await addOldUser(currentRow)
-//         console.log("OK. This ID: " + currentRow["Hope ID"] + "IS OK AND VALIDED IN OLD WAY")
+//         console.log("OK. This ID: " + HopefulID + "IS OK AND VALIDED IN OLD WAY")
         
 //       }
 //       else
@@ -159,6 +159,8 @@ app.post("/upload-csv", upload.single("csvFile"), async (req, res) => {
 
     const data = await readCSV(filePath);
 
+    
+
     // Process the Support Region
     const uniqueSupportRegions = getUniqueValues(data, "Support Region");
     uniqueSupportRegions.forEach(async (item) => {
@@ -196,7 +198,13 @@ app.post("/upload-csv", upload.single("csvFile"), async (req, res) => {
 
     // Process HopeFuel IDs
     for (let row in data) {
+      
       let currentRow = data[row];
+      console.log(currentRow)
+      const hopeKeys = Object.keys(currentRow).filter(key => key.includes('Hope'));
+      console.log(hopeKeys)
+      const HopefulID = currentRow[hopeKeys[0]]
+      console.log(HopefulID)
       let isRowValidated = validateRow(currentRow);
 
       if (!isRowValidated) {
@@ -213,18 +221,18 @@ app.post("/upload-csv", upload.single("csvFile"), async (req, res) => {
 
         if (isValidatedOld) {
           await addOldUser(currentRow);
-          logger.info(`OK. This ID: ${currentRow["Hope ID"]} is validated in old way`);
+          logger.info(`OK. This ID: ${HopefulID} is validated in old way`);
         } else {
-          logger.error(`ERROR. This ID: ${currentRow["Hope ID"]} is an old user but doesn't have an ID in the database`);
+          logger.error(`ERROR. This ID: ${HopefulID} is an old user but doesn't have an ID in the database`);
         }
       } else if (isNewUser) {
         let isValidatedNew = await validateNew(currentRow["Name"], currentRow["Email"]);
 
         if (isValidatedNew) {
           await addNewUser(currentRow);
-          logger.info(`OK. This ID: ${currentRow["Hope ID"]} is a new user and will be welcomed`);
+          logger.info(`OK. This ID: ${HopefulID} is a new user and will be welcomed`);
         } else {
-          logger.error(`ERROR. This ID: ${currentRow["Hope ID"]} is a new user but has already been registered`);
+          logger.error(`ERROR. This ID: ${HopefulID} is a new user but has already been registered`);
         }
       }
     }

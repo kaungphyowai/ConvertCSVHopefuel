@@ -12,7 +12,6 @@ import insertNoteAndGetId from '../Helper/insertNoteAndGetId.js'
 export default async function addNewUser(row) {
     // TODO: formfill person need to match before run in csv.
     const {
-        'Hope ID': HopefulID,
         'Date': transactionDate,
         'Name': name,
         'Email': email,
@@ -26,6 +25,10 @@ export default async function addNewUser(row) {
         'Support Region': regionName,
         "AgentID": awsId
     } = row;
+
+    const hopeKeys = Object.keys(row).filter(key => key.includes('Hope'));
+    const HopefulID = row[hopeKeys[0]]
+    console.log(HopefulID)
     const walletId = await getWalletId(walletName);
     const supportRegionId = await getSupportRegionId(regionName);
 
