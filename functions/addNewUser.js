@@ -28,7 +28,6 @@ export default async function addNewUser(row) {
 
     const hopeKeys = Object.keys(row).filter(key => key.includes('Hope'));
     const HopefulID = row[hopeKeys[0]]
-    console.log(HopefulID)
     const walletId = await getWalletId(walletName);
     const supportRegionId = await getSupportRegionId(regionName);
 

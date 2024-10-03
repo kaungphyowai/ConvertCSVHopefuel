@@ -170,17 +170,18 @@ app.post("/upload-csv", upload.single("csvFile"), async (req, res) => {
 
     // Process the Currency
     const uniqueCurrency = getUniqueValues(data, "Currency");
-    uniqueCurrency.forEach(async (item) => {
+    for (const item of uniqueCurrency) {
       const currencyID = await insertToCurrencyDB(item);
       logger.info(`Currency Data inserted into the database with Id: ${currencyID}`);
-    });
+    }
 
     // Process the Wallet
     const uniqueWallet = getUniqueValues(data, "Wallet");
-    uniqueWallet.forEach(async (item) => {
+    for(const item of uniqueWallet)
+    {
       const walletID = await insertToWalletDB(item);
       logger.info("Wallet Data inserted into the database");
-    });
+    }
 
     // Process the UserRole
     const userRole = ["Support Agent", "Admin", "Payment Processor"];
@@ -200,11 +201,8 @@ app.post("/upload-csv", upload.single("csvFile"), async (req, res) => {
     for (let row in data) {
       
       let currentRow = data[row];
-      console.log(currentRow)
       const hopeKeys = Object.keys(currentRow).filter(key => key.includes('Hope'));
-      console.log(hopeKeys)
       const HopefulID = currentRow[hopeKeys[0]]
-      console.log(HopefulID)
       let isRowValidated = validateRow(currentRow);
 
       if (!isRowValidated) {
