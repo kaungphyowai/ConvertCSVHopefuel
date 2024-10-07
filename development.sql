@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS development;
-CREATE DATABASE development;
-USE development;
+Drop database development;
+create database development;
+use development;
 
 -- Table: Currency
 CREATE TABLE Currency (
@@ -45,7 +45,7 @@ CREATE TABLE Note (
     FOREIGN KEY (AgentID) REFERENCES Agent(AgentId)
 );
 
--- Table: Customer (Modified with CardIssueDate column)
+-- Table: Customer
 CREATE TABLE Customer (
     CustomerId INT AUTO_INCREMENT PRIMARY KEY,
     Name VARCHAR(255),
@@ -59,25 +59,29 @@ CREATE TABLE Customer (
     FOREIGN KEY (AgentId) REFERENCES Agent(AgentId)
 );
 
--- Table: Transactions (Modified with HopefulID column)
+-- Table: Transactions
 CREATE TABLE Transactions (
     TransactionID INT AUTO_INCREMENT PRIMARY KEY,
     CustomerID INT,  -- Foreign key to Customer table
     SupportRegionID INT,  -- Foreign key to SupportRegion table
     WalletID INT,  -- Foreign key to Wallet table
     Amount FLOAT,
-    ScreenShot BLOB,
     PaymentCheck BOOLEAN,
     PaymentCheckTime TIMESTAMP,
     NoteID INT,  -- Foreign key to Note table
     TransactionDate TIMESTAMP,
     PaymentDenied BOOLEAN,
     Month INT,
-    HopefulID INT,  -- New column to store ongoing transaction ID from the previous database
     FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerId),
     FOREIGN KEY (SupportRegionID) REFERENCES SupportRegion(SupportRegionId),
     FOREIGN KEY (WalletID) REFERENCES Wallet(WalletId),
     FOREIGN KEY (NoteID) REFERENCES Note(NoteId)
+);
+CREATE TABLE ScreenShot (
+    ScreenShotID INT AUTO_INCREMENT PRIMARY KEY,
+    TransactionID INT,
+    ScreenShotLink VARCHAR(2048),
+    FOREIGN KEY (TransactionID) REFERENCES Transactions(TransactionID)
 );
 
 -- Table: TransactionAgent
