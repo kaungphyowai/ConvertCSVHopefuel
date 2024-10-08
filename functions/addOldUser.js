@@ -1,4 +1,5 @@
 // Import the db function from the db.js file
+import { loggers } from "winston";
 import db from "../database/db.js";
 import calculateExpireDate from "../Helper/calculateExpireDate.js"
 import getAgentId from "../Helper/getAgentId.js";
@@ -10,7 +11,7 @@ import 'dotenv/config'
 
 
 // Function for inserting data into the database
-export default async function addOldUser(row) {
+export default async function addOldUser(row, logger) {
     // TODO: formfill person need to match before run in csv.
     try {
         const {
@@ -46,15 +47,114 @@ export default async function addOldUser(row) {
         const noteId = await insertNoteAndGetId(notes);
 
 
-        // 1. Get or create the customer
+        // 1. Check old user exist in sql
         let customerId = await getCustomerIdByCardId(parseInt(getInteger(customerCardId)));
-
+        console.log("Adding old user ")
+        console.log(customerId)
 
         if (customerId != undefined) {
-            // 4. Insert the transaction into the Transactions table
+            // the user exist in the database
+            console.log("The user exist in the database. We are determing the permission of this user")
             let HopeFuel = parseInt(getInteger(hopefulId))
 
-            console.log("You are adding the same person in the same month")
+            /**
+             * If user has permission to add this month
+             * 
+             * Note: Since we are only migration from excel for only 2 month, we don't need to consider
+             * from airtable.. airtable hasn't beed used for a long time now
+             */
+            let transaction_Date = new Date(transactionDate)
+            let hasPermission = await hasPermissionThisMonth(parseInt(customerId), transaction_Date)
+            console.log(hasPermission)
+
+            if(hasPermission)
+            {
+                /**
+                 * 1. Use customer ID to add transaction and transaction agent
+                 * 2. increment expireDate of the old user => choose between new Expiredate or extend old expire date
+                 */
+
+                let result = await db(
+                    `INSERT INTO Transactions (
+                        CustomerID, SupportRegionID, WalletID, Amount, 
+                        PaymentCheck, TransactionDate, Month, HopeFuelID, NoteID, PaymentDenied
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                        customerId, supportRegionId, walletId, parseFloat(amount),
+                        1, new Date(transactionDate), parseInt(month), HopeFuel, noteId , 0
+                    ]
+                );
+
+                // get the expireDate of the customer ID
+                let databaseExpiredate;
+                try{
+
+                    databaseExpiredate = await getExpireDateByCustomerID(customerId)
+                }
+                catch(e)
+                {
+                    console.log(e)
+                }
+                console.log(databaseExpiredate)
+
+
+                let expireDate = recentExpireDate(transaction_Date, new Date(databaseExpiredate))
+                console.log(expireDate)
+                
+                let nextExpireDate
+                try{
+
+                    nextExpireDate = calculateExpireDate(expireDate, month)
+                }
+                catch(err)
+                {
+                    console.log(err)
+                }
+                console.log(nextExpireDate)
+
+                let transactionID = result.insertId;
+
+                let agentId = await getAgentId(awsId)
+                console.log("My agent Id is " + agentId)
+                try{
+
+                    await db(
+                        `INSERT INTO TransactionAgent (
+                            TransactionID, AgentId, LogDate
+                        ) VALUES (?, ?, ?)`,
+                        [
+                            transactionID, agentId, new Date(transactionDate)
+                        ]
+                    );
+                }
+                catch(err)
+                {
+                    console.log(err)
+                }
+            
+                try
+                {
+                    await db(
+                        `UPDATE Customer
+                        SET ExpireDate = ?
+                        WHERE CustomerId = ?;`,
+                        [
+                            nextExpireDate, customerId
+                        ]
+                    );
+                }
+                catch(e)
+                {
+                    console.log(e)
+                }
+                
+                
+            }
+            else
+            {
+                logger.error(`ERROR. This ID: ${hopefulId} is being added two time in one month.`);
+            }
+
 
             // await db(
             //     `INSERT INTO Transactions (
@@ -71,7 +171,7 @@ export default async function addOldUser(row) {
         {
         let HopeFuel = parseInt(getInteger(hopefulId))
 
-            // get airtable if there is no id in database
+            // Old User with no row in database
 
             let cardID = getInteger(customerCardId)
 
@@ -111,9 +211,20 @@ export default async function addOldUser(row) {
             {
 
                 let airtable_expireDate = new Date(json['expire_date'][0]);
+                let transaction_Date = new Date(transactionDate)
+
+
+
+                let expireDate = recentExpireDate(transaction_Date, airtable_expireDate)
+                console.log("Candy expire date is ")
+                console.log(expireDate)
+
+                
                 try{
 
-                    nextExpireDate = calculateExpireDate(airtable_expireDate, month)
+                    nextExpireDate = calculateExpireDate(expireDate, month)
+                    console.log("Candy next expire date is ")
+                    console.log(nextExpireDate)
                 }
                 catch(err)
                 {
@@ -122,8 +233,8 @@ export default async function addOldUser(row) {
             }
             try {
                 const customerResult = await db(
-                    'INSERT INTO Customer (Name, Email, UserCountry, ManyChatId, ExpireDate) VALUES (?, ?, ?, ?, ?)',
-                    [airtable_name, airtable_email, userCountry, manyChatId, nextExpireDate]
+                    'INSERT INTO Customer (Name, Email, UserCountry, ManyChatId, ExpireDate, CardID) VALUES (?, ?, ?, ?, ?, ?)',
+                    [airtable_name, airtable_email, userCountry, manyChatId, nextExpireDate, cardID]
                 );
                 customerId = customerResult.insertId;
                 console.log("customerid " + customerId)
@@ -138,7 +249,7 @@ export default async function addOldUser(row) {
                 result = await db(
                     `INSERT INTO Transactions (
                         CustomerID, SupportRegionID, WalletID, Amount, 
-                        PaymentCheck, TransactionDate, Month, HopefulID, NoteID, PaymentDenied
+                        PaymentCheck, TransactionDate, Month, HopeFuelID, NoteID, PaymentDenied
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                     [
                         customerId, supportRegionId, walletId, parseFloat(amount),
@@ -159,7 +270,7 @@ export default async function addOldUser(row) {
 
                 await db(
                     `INSERT INTO TransactionAgent (
-                        TransactionID, AgentID, LogDate
+                        TransactionID, AgentId, LogDate
                     ) VALUES (?, ?, ?)`,
                     [
                         transactionID, agentId, new Date(transactionDate)
@@ -198,6 +309,50 @@ async function getCustomerIdByCardId(cardId) {
     // Check if any rows are returned, and return CustomerId of the first row
     if (rows.length > 0) {
         return rows[0].CustomerId;
+    } else {
+        return undefined;
+    }
+}
+
+async function getExpireDateByCustomerID(customerID) {
+    const rows = await db(
+        'SELECT ExpireDate FROM Customer WHERE CustomerId = ?',
+        [customerID]
+    );
+
+    
+    // Check if any rows are returned, and return CustomerId of the first row
+    if (rows.length > 0) {
+        return rows[0]["ExpireDate"];
+    } else {
+        return undefined;
+    }
+}
+
+function recentExpireDate(transactionDate, databaseExpireDate)
+{
+    // check which is bigger, airtable ExpireDate or transaction add date
+    let date = databaseExpireDate< transactionDate ? transactionDate : databaseExpireDate
+    return date
+}
+
+async function hasPermissionThisMonth(customerId, currentTransactionDate) {
+    console.log("Inside the has permission ")
+    console.log(customerId)
+    const rows = await db(
+        'SELECT * FROM Transactions WHERE CustomerID=? ORDER BY TransactionDate DESC LIMIT 1;',
+        [customerId]
+    );
+
+    
+    // Check if any rows are returned, and return CustomerId of the first row
+    if (rows.length > 0) {
+
+        let currentRow = rows[0];
+        let latestTransactionDate = currentRow['TransactionDate'];
+        console.log(latestTransactionDate)
+        let hasPermission = new Date(latestTransactionDate).getMonth() == currentTransactionDate.getMonth() ? false: true;
+        return hasPermission;
     } else {
         return undefined;
     }

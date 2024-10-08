@@ -1,24 +1,29 @@
 import winston from 'winston';
 import path from 'path';
+import fs from 'fs';
 
-// Create a new log file with a timestamp on each run
-const getLogFileName = () => {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    return `app-${timestamp}.log`;  // e.g., 'app-2024-10-01T08-30-45.log'
-};
+// Function to create a new logger with a dynamic log file
+function createLogger() {
+  const logDir = path.join(process.cwd(), 'logs');
+  
+  // Ensure the log directory exists
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir);
+  }
 
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.printf(({ timestamp, level, message }) => `${timestamp} ${level}: ${message}`)
-  ),
-  transports: [
-    // Dynamically create a log file with a unique name for each run
-    new winston.transports.File({ filename: path.join('logs', getLogFileName()) }),
-    new winston.transports.Console()
-  ]
-});
+  // Create a log file with a unique name (e.g., using a timestamp)
+  const logFile = path.join(logDir, `app-${new Date().toISOString().replace(/:/g, '-')}.log`);
 
-// Export the logger so that it can be used in other files
-export default logger;
+  return winston.createLogger({
+    level: 'info',
+    format: winston.format.combine(
+      winston.format.timestamp(),
+      winston.format.json()
+    ),
+    transports: [
+      new winston.transports.File({ filename: logFile })
+    ]
+  });
+}
+
+export default createLogger;

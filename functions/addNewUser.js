@@ -9,7 +9,7 @@ import insertNoteAndGetId from '../Helper/insertNoteAndGetId.js'
 
 
 // Function for inserting data into the database
-export default async function addNewUser(row) {
+export default async function addNewUser(row, logger) {
     // TODO: formfill person need to match before run in csv.
     const {
         'Date': transactionDate,
@@ -50,7 +50,7 @@ const expireDate = calculateExpireDate(new Date(transactionDate), month)
     let result = await db(
         `INSERT INTO Transactions (
             CustomerID, SupportRegionID, WalletID, Amount, 
-            PaymentCheck, TransactionDate, Month, HopefulID, NoteID, PaymentDenied
+            PaymentCheck, TransactionDate, Month, HopeFuelID, NoteID, PaymentDenied
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
             customerId, supportRegionId, walletId, amount,

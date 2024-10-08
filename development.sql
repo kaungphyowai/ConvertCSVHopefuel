@@ -1,90 +1,109 @@
+-- Drop and create the development database
 DROP DATABASE IF EXISTS development;
 CREATE DATABASE development;
 USE development;
 
--- Table: Currency
+-- Create Currency table and insert demo data
 CREATE TABLE Currency (
     CurrencyId INT AUTO_INCREMENT PRIMARY KEY,
     CurrencyCode VARCHAR(10)
 );
 
--- Table: Wallet
+
+-- Create Wallet table and insert demo data
 CREATE TABLE Wallet (
     WalletId INT AUTO_INCREMENT PRIMARY KEY,
-    CurrencyId INT,  -- Foreign key to Currency table
+    CurrencyId INT,
     WalletName VARCHAR(255),
     FOREIGN KEY (CurrencyId) REFERENCES Currency(CurrencyId)
 );
 
--- Table: SupportRegion
+
+-- Create SupportRegion table and insert demo data
 CREATE TABLE SupportRegion (
-    SupportRegionId INT AUTO_INCREMENT PRIMARY KEY,
+    SupportRegionID INT AUTO_INCREMENT PRIMARY KEY,
     Region VARCHAR(255)
 );
 
--- Table: UserRole
+
+-- Create UserRole table and insert demo data
 CREATE TABLE UserRole (
     UserRoleID INT AUTO_INCREMENT PRIMARY KEY,
     UserRole VARCHAR(255)
 );
 
--- Table: Agent
+INSERT INTO UserRole (UserRole) VALUES 
+('Support Agent'),
+('Admin'),
+('Payment Processor');
+
+-- Create Agent table and insert demo data
 CREATE TABLE Agent (
     AgentId INT AUTO_INCREMENT PRIMARY KEY,
     AwsId VARCHAR(255),
-    UserRoleId INT,  -- Foreign key to UserRole table
+    UserRoleId INT,
     FOREIGN KEY (UserRoleId) REFERENCES UserRole(UserRoleID)
 );
 
--- Table: Note
+
+-- Create Note table and insert demo data
 CREATE TABLE Note (
     NoteID INT AUTO_INCREMENT PRIMARY KEY,
     Note VARCHAR(255),
     Date DATE,
-    AgentID INT,  -- Foreign key to Agent table
+    AgentID INT,
     FOREIGN KEY (AgentID) REFERENCES Agent(AgentId)
 );
 
--- Table: Customer (Modified with CardIssueDate column)
+-- Create Customer table and insert demo data
 CREATE TABLE Customer (
     CustomerId INT AUTO_INCREMENT PRIMARY KEY,
     Name VARCHAR(255),
     Email VARCHAR(255),
-    ManyChatId VARCHAR(255),  -- Assuming array of strings for ManyChatId
+    ManyChatId VARCHAR(255),
     ExpireDate DATE,
     UserCountry VARCHAR(255),
     ContactLink VARCHAR(255),
-    AgentId INT,  -- Foreign key to Agent table
+    AgentId INT,
     CardID INT,
     FOREIGN KEY (AgentId) REFERENCES Agent(AgentId)
 );
 
--- Table: Transactions (Modified with HopefulID column)
+
+-- Create Transactions table and insert demo data
 CREATE TABLE Transactions (
     TransactionID INT AUTO_INCREMENT PRIMARY KEY,
-    CustomerID INT,  -- Foreign key to Customer table
-    SupportRegionID INT,  -- Foreign key to SupportRegion table
-    WalletID INT,  -- Foreign key to Wallet table
+    CustomerID INT,
+    SupportRegionID INT,
+    WalletID INT,
     Amount FLOAT,
-    ScreenShot BLOB,
     PaymentCheck BOOLEAN,
     PaymentCheckTime TIMESTAMP,
-    NoteID INT,  -- Foreign key to Note table
+    NoteID INT,
     TransactionDate TIMESTAMP,
     PaymentDenied BOOLEAN,
     Month INT,
-    HopefulID INT,  -- New column to store ongoing transaction ID from the previous database
+    HopeFuelID INT,
     FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerId),
-    FOREIGN KEY (SupportRegionID) REFERENCES SupportRegion(SupportRegionId),
+    FOREIGN KEY (SupportRegionID) REFERENCES SupportRegion(SupportRegionID),
     FOREIGN KEY (WalletID) REFERENCES Wallet(WalletId),
-    FOREIGN KEY (NoteID) REFERENCES Note(NoteId)
+    FOREIGN KEY (NoteID) REFERENCES Note(NoteID)
 );
 
--- Table: TransactionAgent
+-- Create ScreenShot table and insert demo data
+CREATE TABLE ScreenShot (
+    ScreenShotID INT AUTO_INCREMENT PRIMARY KEY,
+    TransactionID INT,
+    ScreenShotLink VARCHAR(2048),
+    FOREIGN KEY (TransactionID) REFERENCES Transactions(TransactionID)
+);
+
+
+-- Create TransactionAgent table and insert demo data
 CREATE TABLE TransactionAgent (
     TransactionAgentID INT AUTO_INCREMENT PRIMARY KEY,
-    TransactionID INT,  -- Foreign key to Transactions table
-    AgentID INT,  -- Foreign key to Agent table
+    TransactionID INT,
+    AgentID INT,
     LogDate TIMESTAMP,
     FOREIGN KEY (TransactionID) REFERENCES Transactions(TransactionID),
     FOREIGN KEY (AgentID) REFERENCES Agent(AgentId)

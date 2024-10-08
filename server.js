@@ -151,15 +151,17 @@ app.listen(PORT, () => {
 
 
 
-import logger from './Helper/Logger.js'; // Import your logger setup
+import createLogger from './Helper/Logger.js'; // Import your logger setup
 
 app.post("/upload-csv", upload.single("csvFile"), async (req, res) => {
+  const logger = createLogger(); // Create a new logger instance with a unique file for this request
   try {
     const filePath = path.join(process.cwd(), "uploads", req.file.filename);
 
     const data = await readCSV(filePath);
 
-    
+
+
 
     // Process the Support Region
     const uniqueSupportRegions = getUniqueValues(data, "Support Region");
@@ -192,10 +194,12 @@ app.post("/upload-csv", upload.single("csvFile"), async (req, res) => {
 
     // Process the Agent ID
     const uniqueAgentID = getUniqueValues(data, "AgentID");
-    uniqueAgentID.forEach(async (item) => {
-      await insertAgentId(item);
+    for(const item of uniqueAgentID)
+    {
+      const AgentID = await insertAgentId(item);
       logger.info("AgentID Data inserted into the database");
-    });
+    }
+    
 
     // Process HopeFuel IDs
     for (let row in data) {
@@ -218,16 +222,16 @@ app.post("/upload-csv", upload.single("csvFile"), async (req, res) => {
         let isValidatedOld = await validateOld(currentRow["Customer ID"]);
 
         if (isValidatedOld) {
-          await addOldUser(currentRow);
+          await addOldUser(currentRow, logger);
           logger.info(`OK. This ID: ${HopefulID} is validated in old way`);
         } else {
           logger.error(`ERROR. This ID: ${HopefulID} is an old user but doesn't have an ID in the database`);
         }
       } else if (isNewUser) {
         let isValidatedNew = await validateNew(currentRow["Name"], currentRow["Email"]);
-
+        
         if (isValidatedNew) {
-          await addNewUser(currentRow);
+          await addNewUser(currentRow, logger);
           logger.info(`OK. This ID: ${HopefulID} is a new user and will be welcomed`);
         } else {
           logger.error(`ERROR. This ID: ${HopefulID} is a new user but has already been registered`);
