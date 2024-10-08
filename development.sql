@@ -1,7 +1,6 @@
--- Drop and create the development database
-DROP DATABASE IF EXISTS development;
-CREATE DATABASE development;
-USE development;
+Drop database development;
+create database development;
+use development;
 
 -- Create Currency table and insert demo data
 CREATE TABLE Currency (
@@ -55,7 +54,7 @@ CREATE TABLE Note (
     FOREIGN KEY (AgentID) REFERENCES Agent(AgentId)
 );
 
--- Create Customer table and insert demo data
+-- Table: Customer
 CREATE TABLE Customer (
     CustomerId INT AUTO_INCREMENT PRIMARY KEY,
     Name VARCHAR(255),
@@ -69,8 +68,7 @@ CREATE TABLE Customer (
     FOREIGN KEY (AgentId) REFERENCES Agent(AgentId)
 );
 
-
--- Create Transactions table and insert demo data
+-- Table: Transactions
 CREATE TABLE Transactions (
     TransactionID INT AUTO_INCREMENT PRIMARY KEY,
     CustomerID INT,
@@ -83,11 +81,16 @@ CREATE TABLE Transactions (
     TransactionDate TIMESTAMP,
     PaymentDenied BOOLEAN,
     Month INT,
-    HopeFuelID INT,
     FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerId),
     FOREIGN KEY (SupportRegionID) REFERENCES SupportRegion(SupportRegionID),
     FOREIGN KEY (WalletID) REFERENCES Wallet(WalletId),
-    FOREIGN KEY (NoteID) REFERENCES Note(NoteID)
+    FOREIGN KEY (NoteID) REFERENCES Note(NoteId)
+);
+CREATE TABLE ScreenShot (
+    ScreenShotID INT AUTO_INCREMENT PRIMARY KEY,
+    TransactionID INT,
+    ScreenShotLink VARCHAR(2048),
+    FOREIGN KEY (TransactionID) REFERENCES Transactions(TransactionID)
 );
 
 -- Create ScreenShot table and insert demo data
