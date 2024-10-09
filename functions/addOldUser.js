@@ -2,6 +2,7 @@
 import { loggers } from "winston";
 import db from "../database/db.js";
 import calculateExpireDateOld from "../Helper/calculateExpireDateOld.js"
+import calculateExpireDate from "../Helper/calculateExpireDate.js"
 import getAgentId from "../Helper/getAgentId.js";
 import getInteger from "../Helper/getInteger.js";
 import getSupportRegionId from "../Helper/getSupportRegionId.js";
@@ -100,11 +101,21 @@ export default async function addOldUser(row, logger) {
 
                 let expireDate = recentExpireDate(transaction_Date, new Date(databaseExpiredate))
                 console.log(expireDate)
+                let databaseExpiredate_DateFormat = new Date(databaseExpiredate)
                 
-                let nextExpireDate
+                let nextExpireDate;
                 try{
+                    if(expireDate.getMonth() == databaseExpiredate_DateFormat.getMonth() && expireDate.getDate() == databaseExpiredate_DateFormat.getDate())
+                    {
+                        // if this expiredate is from database Expire Date. Calculate old way
+                        nextExpireDate = calculateExpireDateOld(expireDate, month)
+                    }
+                    else
+                    {
+                        // if this expire date is from transaction date. Calculate normal way
+                        nextExpireDate = calculateExpireDate(expireDate, month)
+                    }
 
-                    nextExpireDate = calculateExpireDateOld(expireDate, month)
                 }
                 catch(err)
                 {
@@ -218,11 +229,19 @@ export default async function addOldUser(row, logger) {
                 let expireDate = recentExpireDate(transaction_Date, airtable_expireDate)
                 console.log("Candy expire date is ")
                 console.log(expireDate)
+                console.log(expireDate)
 
-                
                 try{
-
-                    nextExpireDate = calculateExpireDateOld(expireDate, month)
+                    if(expireDate.getMonth() == airtable_expireDate.getMonth() && expireDate.getDate() == airtable_expireDate.getDate())
+                    {
+                        // if this expiredate is from database Expire Date. Calculate old way
+                        nextExpireDate = calculateExpireDateOld(expireDate, month)
+                    }
+                    else
+                    {
+                        // if this expire date is from transaction date. Calculate normal way
+                        nextExpireDate = calculateExpireDate(expireDate, month)
+                    }
                     console.log("Candy next expire date is ")
                     console.log(nextExpireDate)
                 }
