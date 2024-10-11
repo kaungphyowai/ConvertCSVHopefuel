@@ -140,7 +140,7 @@ const upload = multer({ dest: "uploads/" });
 
 
 //Routes
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
    res.sendFile(path.join(process.cwd(), "public", "index.html"));
 });
 
@@ -152,6 +152,11 @@ app.listen(PORT, () => {
 
 
 import createLogger from './Helper/Logger.js'; // Import your logger setup
+import isSupportRegionExist from "./Helper/isSupportRegionExist.js";
+import isWalletExist from "./Helper/isWalletExist.js";
+import isCurrencyExist from "./Helper/isCurrencyExist.js";
+import isUserRoleExist from "./Helper/isUserRoleExist.js";
+import isAgentExist from "./Helper/isAgentExist.js";
 
 app.post("/upload-csv", upload.single("csvFile"), async (req, res) => {
   const logger = createLogger(); // Create a new logger instance with a unique file for this request
@@ -165,39 +170,60 @@ app.post("/upload-csv", upload.single("csvFile"), async (req, res) => {
 
     // Process the Support Region
     const uniqueSupportRegions = getUniqueValues(data, "Support Region");
-    uniqueSupportRegions.forEach(async (item) => {
-      await insertToSupportRegionDB(item);
-      logger.info("Support Region Data inserted into the database");
-    });
-
+    for (const item of uniqueSupportRegions) {
+      let doesSupportRegionExist = await isSupportRegionExist(item);
+      if(!doesSupportRegionExist)
+      {
+        const supportRegionID = await insertToSupportRegionDB(item);
+        logger.info(`Support Region Data inserted into the database with Id: ${supportRegionID}`);
+      }
+    }
+    
     // Process the Currency
     const uniqueCurrency = getUniqueValues(data, "Currency");
     for (const item of uniqueCurrency) {
-      const currencyID = await insertToCurrencyDB(item);
-      logger.info(`Currency Data inserted into the database with Id: ${currencyID}`);
+      let doesCurrencyExist = await isCurrencyExist(item);
+      if(!doesCurrencyExist)
+      {
+        const currencyID = await insertToCurrencyDB(item);
+        logger.info(`Currency Data inserted into the database with Id: ${currencyID}`);
+      }
     }
 
     // Process the Wallet
     const uniqueWallet = getUniqueValues(data, "Wallet");
     for(const item of uniqueWallet)
     {
-      const walletID = await insertToWalletDB(item);
-      logger.info("Wallet Data inserted into the database");
+      let doesWalletExist = await isWalletExist(item)
+      if(!doesWalletExist)
+      {
+        const walletID = await insertToWalletDB(item);
+        logger.info(`Wallet Data inserted into the database with Id: ${walletID}`);
+      }
     }
 
     // Process the UserRole
     const userRole = ["Support Agent", "Admin", "Payment Processor"];
     userRole.forEach(async (item) => {
-      const userRoleID = await insertToUserRoleDB(item);
-      logger.info("UserRole Data inserted into the database");
+      let doesUserRoleExist = await isUserRoleExist(item);
+      if(!doesUserRoleExist)
+      {
+        const userRoleID = await insertToUserRoleDB(item);
+        logger.info(`UserRole Data inserted into the database with Id: ${userRoleID}`);
+      }
     });
 
     // Process the Agent ID
     const uniqueAgentID = getUniqueValues(data, "AgentID");
     for(const item of uniqueAgentID)
     {
-      const AgentID = await insertAgentId(item);
-      logger.info("AgentID Data inserted into the database");
+      let doesAgentIDExist = await isAgentExist(item);
+      if(!doesAgentIDExist)
+      {
+
+        const AgentID = await insertAgentId(item);
+        logger.info(`AgentID Data inserted into the database with Id: ${AgentID}`);
+      }
     }
     
 
