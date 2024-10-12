@@ -4,12 +4,72 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CSV Upload</title>
+  <style>
+    /* Basic styles for the tabs */
+    .tab {
+      display: inline-block;
+      padding: 10px 20px;
+      cursor: pointer;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      border-bottom: none;
+      margin-right: 5px;
+    }
+    .tab.active {
+      background-color: #fff;
+      border-bottom: 2px solid #fff;
+    }
+    .tab-content {
+      display: none;
+      border: 1px solid #ccc;
+      padding: 20px;
+      background-color: #fff;
+    }
+    .tab-content.active {
+      display: block;
+    }
+  </style>
 </head>
 <body>
   <h1>Upload CSV File</h1>
-  <form action="/upload-csv" method="POST" enctype="multipart/form-data">
-    <input type="file" name="csvFile" accept=".csv" required />
-    <button type="submit">Upload</button>
-  </form>
+
+  <!-- Tabs for navigation -->
+  <div>
+    <div class="tab active" onclick="showTab('upload-csv')">Migration</div>
+    <div class="tab" onclick="showTab('cardId')">Adding New CardID</div>
+  </div>
+
+  <!-- Tab content for /upload-csv -->
+  <div id="upload-csv" class="tab-content active">
+    <form action="/upload-csv" method="POST" enctype="multipart/form-data">
+      <input type="file" name="csvFile" accept=".csv" required />
+      <button type="submit">Upload</button>
+    </form>
+  </div>
+
+  <!-- Tab content for /cardId -->
+  <div id="cardId" class="tab-content">
+    <form action="/cardId" method="POST" enctype="multipart/form-data">
+      <input type="file" name="csvFile" accept=".csv" required />
+      <button type="submit">Upload</button>
+    </form>
+  </div>
+
+  <script>
+    // JavaScript function to switch between tabs
+    function showTab(tabId) {
+      // Hide all tab contents
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabContents.forEach(content => content.classList.remove('active'));
+
+      // Remove active class from all tabs
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => tab.classList.remove('active'));
+
+      // Show the selected tab content and add active class to the clicked tab
+      document.getElementById(tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+  </script>
 </body>
 </html>

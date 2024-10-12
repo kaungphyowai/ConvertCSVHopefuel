@@ -157,6 +157,9 @@ import isWalletExist from "./Helper/isWalletExist.js";
 import isCurrencyExist from "./Helper/isCurrencyExist.js";
 import isUserRoleExist from "./Helper/isUserRoleExist.js";
 import isAgentExist from "./Helper/isAgentExist.js";
+import getInteger from "./Helper/getInteger.js";
+import cardIDByHopeFuelID from "./Helper/cardIDByHopeFuelID.js";
+import updateCardID from "./Helper/updateCardID.js";
 
 app.post("/upload-csv", upload.single("csvFile"), async (req, res) => {
   const logger = createLogger(); // Create a new logger instance with a unique file for this request
@@ -280,6 +283,82 @@ app.post("/upload-csv", upload.single("csvFile"), async (req, res) => {
 
   } catch (err) {
     logger.error(`Error processing CSV: ${err.message}`);
+    res.status(500).send("Error processing the file");
+  }
+});
+
+
+
+app.post("/cardId", upload.single("csvFile"), async (req, res) => {
+  const logger = createLogger();
+  try
+  {
+    const filePath = path.join(process.cwd(), "uploads", req.file.filename);
+
+    const data = await readCSV(filePath);
+
+
+    /**
+     * For every row in csv file,
+     * 1. Check if they have carid
+     * 2. If not then, update the CardID field of that user
+     * 3. If there is an id, show error
+     */
+
+    for(let row in data)
+    {
+      const HOPEID = data[row]['Hope ID'];
+      const CUSTOMERID = data[row]['Customer ID'];
+
+      let hopeid = parseInt(getInteger(HOPEID));
+      let cardId = parseInt(getInteger(CUSTOMERID));
+
+      let answer = await cardIDByHopeFuelID(hopeid)
+
+      if(answer == null)
+      {
+        logger.error(`There is no hopeFuel ID with ${HOPEID}`)
+        continue;
+      }
+      const {
+        CustomerId,
+        Name,
+        CardID
+      } = answer
+
+      if(CardID == null)
+      {
+        // update the cardid
+        console.log(CustomerId)
+        console.log(cardId)
+        await updateCardID(CustomerId, cardId)
+
+      }
+      else
+      {
+        logger.error(`We already have a cardNo for ${Name} with hopefuelID ${HOPEID}. Card No is ${CardID}`)
+      }
+
+      
+    }
+
+
+    const latestLogFile = getLatestLogFile();
+        if (!latestLogFile) {
+            return res.status(404).send("No log files found");
+        }
+    
+    // Download the latest log file
+    res.download(latestLogFile, path.basename(latestLogFile), (err) => {
+      if (err) {
+          logger.error('Error sending the log file:', err);
+          res.status(500).send("Error downloading the log file");
+      }
+  });
+  }
+  catch(e)
+  {
+    logger.error(`Error processing CSV: ${e.message}`);
     res.status(500).send("Error processing the file");
   }
 });
