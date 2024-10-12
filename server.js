@@ -307,9 +307,18 @@ app.post("/cardId", upload.single("csvFile"), async (req, res) => {
 
     for(let row in data)
     {
-      const HOPEID = data[row]['Hope ID'];
-      const CUSTOMERID = data[row]['Customer ID'];
+      let currentRow = data[row];
+      const hopeKeys = Object.keys(currentRow).filter(key => key.includes('Hope'));
+      console.log(hopeKeys)
+        const HOPEID = currentRow[hopeKeys[0]]
 
+        const customerKey = Object.keys(currentRow).filter(key => key.includes('Customer'));
+        const CUSTOMERID = currentRow[customerKey[0]]
+      console.log(data[row])
+      
+      console.log(HOPEID)
+
+      console.log(CUSTOMERID)
       let hopeid = parseInt(getInteger(HOPEID));
       let cardId = parseInt(getInteger(CUSTOMERID));
 
